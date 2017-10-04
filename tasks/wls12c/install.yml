@@ -1,0 +1,13 @@
+---
+#
+- name: Prepare configuration for silent mode installation
+  tags: weblogic, weblogic-12c
+  template:
+    src: "{{ _wls_dir }}/install.rsp.j2
+    dest: "{{ oracle_weblogic_response_file }}"
+
+- name: Install Oracle WebLogic 12c in silent mode
+  tags: weblogic, weblogic-12c
+  shell: "{{ ansible_local.java.general.java_home }}/bin/java {{ oracle_weblogic_java_options }} -jar {{ oracle_weblogic_tmp }}/fmw_12.2.1.3.0_wls.jar {{ oracle_weblogic_installer_options }} -silent -responseFile {{ oracle_weblogic_response_file }} -invPtrLoc {{ oracle_weblogic_inventory_loc }} -logfile {{ oracle_weblogic_tmp }}/installer.log"
+  args:
+    creates: "{{ oracle_weblogic_bea_home }}/oraInst.loc"

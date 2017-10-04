@@ -1,0 +1,14 @@
+{{ ansible_managed | comment }}
+
+#
+# Set up domain environment along with setDomainEnv.sh
+#
+DOMAIN_HOME={{ oracle_weblogic_bea_home }}/user_projects/domains/{{ item.domain_name }}
+#
+MW_HOME={{ oracle_weblogic_bea_home }}
+#
+#JAVA_HOME=
+#
+WL_USER={{ oracle_weblogic_user }}
+WL_GROUP={{ oracle_weblogic_group }}
+

@@ -1,0 +1,37 @@
+---
+# defaults for ansible-weblogic
+
+# Default system' user and group for install software
+oracle_weblogic_user: oracle
+oracle_weblogic_group: oinstall
+
+# Default Oracle Weblogic Version to install
+oracle_weblogic_version: 12c
+
+# Default Temporary directory
+oracle_weblogic_tmp: /tmp/wls
+
+# Default Oracle Inventory directory
+oracle_weblogic_inventory_directory: /etc/oracle/Inventory
+
+# Default system-wide Oracle Inventory Locator
+oracle_weblogic_inventory_loc: /etc/oraInst.loc
+
+# Default BEAHOME to install Oracle WebLogic (AKA Middleware Home)
+oracle_weblogic_bea_home: /opt/oracle/oraclefmw
+
+# Default installers' build-in location for WebLogic server Home
+oracle_weblogic_wls_home: "{{ oracle_weblogic_bea_home }}/wlserver"
+
+# Default installation type
+oracle_weblogic_install_type: WebLogic Server
+
+# Default Oracle WebLogic NodeManager port
+oracle_weblogic_nodemanager_port: 5556
+
+# Defaults for creating domain
+oracle_weblogic_AdminServer_ListenAddress: ''
+oracle_weblogic_AdminServer_Password: manager1
+oracle_weblogic_AdminServer_Port: 7001
+oracle_weblogic_AdminServer_StartMode: prod
+oracle_weblogic_AdminServer_SSL_Port: 7002

@@ -1,0 +1,86 @@
+---
+# tasks file for ansible-weblogic
+
+- set_fact:
+    _wls_dir: "wls{{ oracle_weblogic_version }}"
+  tags:
+    - weblogic
+    - weblogic-domain
+
+- name: Include WebLogic version specific vars
+  tags:
+    - weblogic
+    - weblogic-domain
+  include_vars: "{{ _wls_dir }}/wls.yml"
+
+- include: validate.yml
+  tags:
+    - weblogic
+    - weblogic-domain
+  when: not oracle_weblogic_already_installed
+
+- include: prepare.yml
+  tags:
+    - weblogic
+    - weblogic-domain
+  become: yes
+  when: not oracle_weblogic_already_installed
+
+#
+# Installation process
+#
+- name: Create Oracle Middleware directory
+  tags: weblogic
+  file:
+    path: "{{ oracle_weblogic_bea_home }}"
+    state: directory
+    owner: "{{ oracle_weblogic_user }}"
+    group: "{{ oracle_weblogic_group }}"
+    mode: 0775
+
+- include: "{{ _wls_dir }}/install.yml"
+  tags: weblogic
+  become: yes
+  become_user: "{{ oracle_weblogic_user }}"
+  when: not oracle_weblogic_already_installed
+
+#
+# Fix-ups
+#
+# Fix group
+- name: Fix-up user and group for Oracle Middleware directory
+  tags: weblogic
+  file:
+    path: "{{ oracle_weblogic_bea_home }}"
+    state: directory
+    owner: "{{ oracle_weblogic_user }}"
+    group: "{{ oracle_weblogic_group }}"
+    recurse: yes
+
+#- include: "fix-wlst-securerandom-{{ oracle_weblogic_version }}.yml"
+#  become: yes
+#  become_user: "{{ oracle_weblogic_user }}"
+
+- set_fact:
+    oracle_weblogic_already_installed: true
+  tags: weblogic
+
+#
+# Configure domains and Administation server
+#
+- include: "{{ _wls_dir }}/config-domain.yml"
+  tags:
+    - weblogic
+    - weblogic-domain
+  become: yes
+  become_user: "{{ oracle_weblogic_user }}"
+  when: oracle_weblogic_already_installed and oracle_weblogic_domains is defined
+
+#
+# Set up start up system script for domains
+#
+- include: "system-services.yml"
+  tags:
+    - weblogic
+    - weblogic-domain
+  when: oracle_weblogic_already_installed and oracle_weblogic_domains is defined

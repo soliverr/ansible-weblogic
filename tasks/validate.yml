@@ -1,0 +1,37 @@
+- name: Assert Oracle Weblogic supported versions
+  assert:
+    that:
+      - ansible_os_family in oracle_weblogic_supported_os_families
+      - oracle_weblogic_version in oracle_weblogic_supported_versions
+
+- name: Check if Oracle Weblogic is already installed
+  stat: path="{{ oracle_weblogic_wls_home }}"
+  register: wls_home
+
+- debug:
+    msg: "Oracle WebLogic is already installed in this '{{ oracle_weblogic_wls_home }}'"
+  when: wls_home.stat.exists
+
+- name: Check whether Oracle WebLogic domains already configured
+  when: oracle_weblogic_domains is defined
+  with_items: "{{ oracle_weblogic_domains }}"
+  stat: path="{{ oracle_weblogic_bea_home }}/user_projects/domains/{{ item.domain_name }}/servers/AdminServer/data/ldap/DefaultAuthenticatormyrealmInit.initialized"
+  register: wls_domains
+
+#- debug: var=wls_domains
+#  tags: weblogic
+
+- debug: var=oracle_weblogic_domains
+
+# Copy to internal facts
+- set_fact:
+    _oracle_weblogic_domains: "{{ _oracle_weblogic_domains|default([]) + [ item.item|combine(item.stat) ] }}"
+  with_items: "{{ wls_domains.results }}"
+  when: wls_domains.results is defined
+
+#- debug: var=_oracle_weblogic_domains
+
+- set_fact:
+    oracle_weblogic_already_installed: true
+  when: wls_home.stat.exists
+

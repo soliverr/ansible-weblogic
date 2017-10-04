@@ -1,0 +1,80 @@
+---
+# prepare operating system to the installation
+
+- name: Install required packages
+  when: ansible_os_family == "RedHat" and ansible_distribution_major_version >= '6'
+  yum: name={{ item }} state=latest
+  with_items:
+    - java-1.8.0-openjdk
+    - unzip
+
+- name: Copy Oracle WebLogic distribution to host
+  include: "../silpion.lib/tasks/copy.yml"
+  vars:
+    filename: "{{ oracle_weblogic_archive }}"
+
+- name: Check if {{ oracle_weblogic_inventory_loc }} file exists
+  stat:
+    path: "{{ oracle_weblogic_inventory_loc }}"
+  register: oracle_weblogic_orainst_loc
+
+- name: Create Oracle Inventory Location if it not exists
+  when: oracle_weblogic_orainst_loc.stat.exists == false
+  template:
+    src: ora_inst.loc.j2
+    dest: "{{ oracle_weblogic_inventory_loc }}"
+    owner: "{{ oracle_weblogic_user }}"
+    group: "{{ oracle_weblogic_group }}"
+    mode: 0644
+
+# FIXME: Use some Ansible functions
+- name: Get Oracle install group from Oracle Inventory Location if it exists
+  when: oracle_weblogic_orainst_loc.stat.exists == true
+  command: sed -ne 's/^inst_group=\(.\+\)$/\1/p' /etc/oraInst.loc
+  register: oracle_weblogic_group_new
+
+- debug:
+    msg: "System defined Oracle install group: {{ oracle_weblogic_group_new.stdout }}"
+  when: oracle_weblogic_group_new.stdout is defined
+
+- set_fact:
+    oracle_weblogic_group: oracle_weblogic_group_new.stdout
+  when: oracle_weblogic_group_new.stdout is defined and oracle_weblogic_group_new.stdout != oracle_weblogic_group
+
+- name: Check whether there's '{{ oracle_weblogic_user }}' user
+  shell: /usr/bin/getent passwd {{ oracle_weblogic_user }} | /usr/bin/wc -l | tr -d ''
+  register: oracle_weblogic_user_exist
+
+- name: Check whether there's '{{ oracle_weblogic_group }}' group
+  shell: /usr/bin/getent group {{ oracle_weblogic_group }} | /usr/bin/wc -l | tr -d ''
+  register: oracle_weblogic_group_exist
+
+- name: Create '{{ oracle_weblogic_group }}' group
+  when: oracle_weblogic_group_exist.stdout == 0
+  group:
+    name: "{{ oracle_weblogic_group }}"
+    state: present
+
+- name: Create '{{ oracle_weblogic_user }}' user
+  when: oracle_weblogic_user_exist.stdout == 0
+  user:
+    name: "{{ oracle_weblogic_user }}"
+    group: "{{ oracle_weblogic_group }}"
+
+- name: Create temporary directory for installation files
+  file:
+    path: "{{ oracle_weblogic_tmp }}"
+    state: directory
+    owner: "{{ oracle_weblogic_user }}"
+    group: "{{ oracle_weblogic_group }}"
+    mode: 0755
+
+- name: Extract Oracle WebLogic installation files
+  become_user: "{{ oracle_weblogic_user }}"
+  become: true
+  unarchive:
+    src: "{{ lib_persistent_data_path_remote }}/{{ oracle_weblogic_archive }}"
+    dest: "{{ oracle_weblogic_tmp }}"
+    remote_src: true
+    owner: "{{ oracle_weblogic_user }}"
+    group: "{{ oracle_weblogic_group }}"

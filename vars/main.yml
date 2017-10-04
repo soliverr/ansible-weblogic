@@ -1,0 +1,22 @@
+---
+# vars file for ansible-weblogic
+
+# Supported versions of Oracle WebLogic
+oracle_weblogic_supported_versions:
+  - 12c
+  - 11g
+
+# Supported deistributions' families
+oracle_weblogic_supported_os_families:
+  - RedHat
+
+# Run installer with this options
+oracle_weblogic_java_options: "-Xmx1024m -Djava.security.egd=file:/dev/./urandom"
+oracle_weblogic_installer_options: "-ignoreSysPrereqs"
+
+# Sysconfig dir
+oracle_weblogic_sysconfig_dir: /etc/sysconfig
+oracle_weblogic_service_dir: /etc/init.d
+
+# Store fact about Oracle WebLogic existence
+oracle_weblogic_already_installed: false

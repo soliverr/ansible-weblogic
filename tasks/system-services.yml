@@ -1,0 +1,56 @@
+---
+# Deploy system services to start Oracle WebLogic server
+
+- name: Install domain  sysvinit environment files
+  tags:
+    - weblogic
+    - weblogic-domain
+  become: true
+  when: oracle_weblogic_already_installed
+  with_items: "{{ _oracle_weblogic_domains }}"
+  template:
+    src: service-envfile.j2
+    dest: "{{ oracle_weblogic_sysconfig_dir }}/wls-{{ item.domain_name|replace( '_', '-') }}"
+    owner: "{{ oracle_weblogic_user }}"
+    group: "{{ oracle_weblogic_group }}"
+    mode: 0644
+
+- name: Install Domain NodeManager services
+  tags:
+    - weblogic
+    - weblogic-domain
+  become: true
+  with_items: "{{ _oracle_weblogic_domains }}"
+  when: oracle_weblogic_already_installed
+  template:
+    src: "{{ _wls_dir }}/NodeManager-sysvinit.j2"
+    dest: "{{ oracle_weblogic_service_dir }}/{{ item.domain_name|replace( '_', '-') }}-nm"
+    owner: 0
+    group: 0
+    mode: 0755
+
+- name: Ensure Domain NodeManager service(s)
+  tags:
+    - weblogic
+    - weblogic-domain
+  become: true
+  with_items: "{{ _oracle_weblogic_domains }}"
+  when: oracle_weblogic_already_installed
+  service:
+    state: started
+    enabled: true
+    name: "{{ item.domain_name|replace( '_', '-') }}-nm"
+
+- name: Install Domain AdminServer services
+  tags:
+    - weblogic
+    - weblogic-domain
+  become: true
+  with_items: "{{ _oracle_weblogic_domains }}"
+  when: oracle_weblogic_already_installed
+  template:
+    src: "{{ _wls_dir }}/AdminServer-sysvinit.j2"
+    dest: "{{ oracle_weblogic_service_dir }}/{{ item.domain_name|replace( '_', '-') }}-adm"
+    owner: 0
+    group: 0
+    mode: 0755

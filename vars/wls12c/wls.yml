@@ -1,0 +1,19 @@
+---
+# vars file for ansible-weblogic Oracle WebLogic 12c
+
+# Distribution archive should be downloaded from Oracle
+#   http://www.oracle.com/technetwork/middleware/weblogic/downloads
+oracle_weblogic_archive: fmw_12.2.1.3.0_wls_Disk1_1of1.zip
+
+# Configuration for silent installation mode
+oracle_weblogic_response_file: "{{ oracle_weblogic_tmp }}/silent.rsp"
+
+# Default installers' build-in location for WebLogic server Home
+oracle_weblogic_wls_home: "{{ oracle_weblogic_bea_home }}/wlserver"
+
+# Installation type:
+#  - WebLogic Server
+#  - Fusion Middleware Infrastructure
+#  - Coherence
+#  - Complete with Examples
+oracle_weblogic_install_type: WebLogic Server
