@@ -65,11 +65,12 @@ start() {
 
         export MW_HOME JAVA_HOME LD_LIBRARY_PATH
 
+        nl=`wc -l $OUT_FILE`
         $SU -c $PROGRAM_START >> $OUT_FILE 2>&1  &
 
         RETVAL=$?
         if [ $RETVAL -eq 0 ] ; then
-          wait_for "socket listener started on port"
+          wait_for "socket listener started on port" $nl
         else
           echo "FAILED: $RETVAL. Please check $OUT_FILE for more information."
         fi
@@ -77,15 +78,15 @@ start() {
 }
 
 wait_for() {
-    res=$(cat "$OUT_FILE" | fgrep -c "$1")
+    res=$(tail -n +${2:-0} "$OUT_FILE" | fgrep -c "$1")
     count=60
     while [[ ! $res -gt 0 ]] && [[ $count -gt 0 ]]
     do
         sleep 1
         count=$(($count - 1))
-        res=$(cat "$OUT_FILE" | fgrep -c "$1")
+        res=$(tail -n +${2:-0} "$OUT_FILE" | fgrep -c "$1")
     done
-    res=$(cat "$OUT_FILE" | fgrep -c "$1")
+    res=$(tail -n +${2:-0} "$OUT_FILE" | fgrep -c "$1")
     if [ ! $res -gt 0 ]; then
         echo "FAILED or took too long time to start. Please check $OUT_FILE for more information."
     else

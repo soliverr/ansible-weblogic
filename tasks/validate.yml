@@ -21,7 +21,7 @@
 #- debug: var=wls_domains
 #  tags: weblogic
 
-- debug: var=oracle_weblogic_domains
+#- debug: var=oracle_weblogic_domains
 
 # Copy to internal facts
 - set_fact:

@@ -1,0 +1,169 @@
+#!/bin/bash
+#
+# Description:  Manages a WebLogic Administration Server as an OCF High-Availability
+#               resource under Heartbeat/LinuxHA control
+# Author:   Jacco H. Landlust <jacco.landlust@idba.nl>
+#       Inspired on the heartbeat/tomcat OCF resource
+# Version:  1.0
+#
+ 
+OCF_ROOT=/usr/lib/ocf
+ 
+. ${OCF_ROOT}/resource.d/heartbeat/.ocf-shellfuncs
+ 
+usage()
+{
+    echo "$0 [start|stop|status|monitor|migrate_to|migrate_from]"
+    return ${OCF_NOT_RUNNING}
+}
+ 
+isrunning_weblogic()
+{
+        if ! have_binary wget; then
+        ocf_log err "Monitoring not supported by ${OCF_RESOURCE_INSTANCE}"
+        ocf_log info "Please make sure that wget is available"
+        return ${OCF_ERR_CONFIGURED}
+        fi
+        wget -O /dev/null ${RESOURCE_STATUSURL} >/dev/null 2>&1
+}
+ 
+isalive_weblogic()
+{
+        if ! have_binary pgrep; then
+                ocf_log err "Monitoring not supported by ${OCF_RESOURCE_INSTANCE}"
+                ocf_log info "Please make sure that pgrep is available"
+                return ${OCF_ERR_CONFIGURED}
+        fi
+        pgrep -f weblogic.Name > /dev/null
+}
+ 
+monitor_weblogic()
+{
+        isalive_weblogic || return ${OCF_NOT_RUNNING}
+        isrunning_weblogic || return ${OCF_NOT_RUNNING}
+        return ${OCF_SUCCESS}
+}
+ 
+start_weblogic()
+{
+    if [ -f ${DOMAIN_HOME}/servers/AdminServer/logs/AdminServer.out ]; then
+        su - ${WEBLOGIC_USER} --command "mv ${DOMAIN_HOME}/servers/AdminServer/logs/AdminServer.out ${DOMAIN_HOME}/servers/AdminServer/logs/AdminServer.out.`date +%Y-%M-%d-%H%m`"
+    fi
+    monitor_weblogic
+    if [ $? = ${OCF_NOT_RUNNING} ]; then
+        ocf_log debug "start_weblogic"
+        su - ${WEBLOGIC_USER} --command "nohup ${DOMAIN_HOME}/bin/startWebLogic.sh > ${DOMAIN_HOME}/servers/AdminServer/logs/AdminServer.out 2>&1 &"
+        sleep 60
+        touch ${OCF_RESKEY_state}
+    fi
+    monitor_weblogic
+    if [ $? =  ${OCF_SUCCESS} ]; then
+        return ${OCF_SUCCESS}
+    fi
+}
+ 
+stop_weblogic()
+{
+#   monitor_weblogic
+#   if [ $? =  $OCF_SUCCESS ]; then
+        ocf_log debug "stop_weblogic"
+        pkill -KILL -f startWebLogic.sh
+        pkill -KILL -f weblogic.Name
+        rm ${OCF_RESKEY_state}
+#   fi
+    return $OCF_SUCCESS
+}
+ 
+meta_data() {
+        cat <<END
+<?xml version="1.0"?>
+<!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
+<resource-agent name="weblogic" version="0.9">
+    <version>1.0</version>
+    <longdesc lang="en"> This is a WebLogic Resource Agent </longdesc>
+    <shortdesc lang="en">WebLogic resource agent</shortdesc>
+
+    <parameters>
+        <parameter name="state" unique="1">
+            <longdesc lang="en">Location to store the resource state in.</longdesc>
+            <shortdesc lang="en">State file</shortdesc>
+            <content type="string" default="${HA_VARRUN}{OCF_RESOURCE_INSTANCE}.state" />
+        </parameter>
+        <parameter name="statusurl" unique="1">
+            <longdesc lang="en">URL for state confirmation.</longdesc>
+            <shortdesc>URL for state confirmation</shortdesc>
+            <content type="string" default="" />
+        </parameter>
+        <parameter name="domain_home" unique="1">
+            <longdesc lang="en">PATH to the domain_home. Should be a full path</longdesc>
+            <shortdesc lang="en">PATH to the domain.</shortdesc>
+            <content type="string" default="" required="1" />
+        </parameter>
+        <parameter name="weblogic_user" unique="1">
+            <longdesc lang="en">The user that starts WebLogic</longdesc>
+            <shortdesc lang="en">The user that starts WebLogic</shortdesc>
+            <content type="string" default="oracle" />
+        </parameter>
+    </parameters>
+
+    <actions>
+        <action name="start"        timeout="90" />
+        <action name="stop"         timeout="90" />
+        <action name="monitor"      timeout="20" interval="10" depth="0" start-delay="0" />
+        <action name="migrate_to"   timeout="90" />
+        <action name="migrate_from" timeout="90" />
+        <action name="meta-data"    timeout="5" />
+    </actions>
+</resource-agent>
+END
+}
+ 
+# Make the resource globally unique
+: ${OCF_RESKEY_CRM_meta_interval=0}
+: ${OCF_RESKEY_CRM_meta_globally_unique:="true"}
+ 
+if [ "x${OCF_RESKEY_state}" = "x" ]; then
+        if [ ${OCF_RESKEY_CRM_meta_globally_unique} = "false" ]; then
+                state="${HA_VARRUN}${OCF_RESOURCE_INSTANCE}.state"
+
+                # Strip off the trailing clone marker
+                OCF_RESKEY_state=`echo $state | sed s/:[0-9][0-9]*\.state/.state/`
+        else
+                OCF_RESKEY_state="${HA_VARRUN}${OCF_RESOURCE_INSTANCE}.state"
+        fi
+fi
+ 
+# Set some defaults
+RESOURCE_STATUSURL="${OCF_RESKEY_statusurl-http://127.0.0.1:{{ oracle_weblogic_AdminServer_Port }}/console}"
+DOMAIN_HOME="${OCF_RESKEY_domain_home}"
+WEBLOGIC_USER="${OCF_RESKEY_weblogic_user-{{ oracle_weblogic_user}}}"
+ 
+# MAIN
+case $__OCF_ACTION in
+    meta-data)      meta_data
+                 exit ${OCF_SUCCESS}
+                    ;;
+    start)          start_weblogic;;
+    stop)           stop_weblogic;;
+    status)     monitor_weblogic;;
+    monitor)        monitor_weblogic;;
+    migrate_to)     ocf_log info "Migrating ${OCF_RESOURCE_INSTANCE} to ${OCF_RESKEY_CRM_meta_migrate_to}."
+            stop_weblogic
+            ;;
+    migrate_from)   ocf_log info "Migrating ${OCF_RESOURCE_INSTANCE} to ${OCF_RESKEY_CRM_meta_migrated_from}."
+            start_weblogic
+            ;;
+    usage|help)     usage
+            exit ${OCF_SUCCESS}
+                     ;;
+    *)      usage
+            exit ${OCF_ERR_UNIMPLEMENTED}
+            ;;
+esac
+rc=$?
+ 
+# Finish the script
+ocf_log debug "${OCF_RESOURCE_INSTANCE} $__OCF_ACTION : $rc"
+ 
+exit $rc
+

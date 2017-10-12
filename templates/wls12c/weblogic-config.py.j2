@@ -13,44 +13,46 @@ printline("Reading template completed")
 
 # Set up Administration Server parameters
 cd( 'Servers/AdminServer' )
-cmo.setListenAddress( '{{ item.listen_address | default(oracle_weblogic_AdminServer_ListenAddress) }}' )
-setOption( 'ServerStartMode', '{{ item.start_mode | default(oracle_weblogic_AdminServer_StartMode) }}' )
-set( 'ListenPort', {{ item.port | default(oracle_weblogic_AdminServer_Port) }} )
+cmo.setListenAddress( '{{ item.0.listen_address | default(oracle_weblogic_AdminServer_ListenAddress) }}' )
+setOption( 'ServerStartMode', '{{ item.0.start_mode | default(oracle_weblogic_AdminServer_StartMode) }}' )
+set( 'ListenPort', {{ item.0.port | default(oracle_weblogic_AdminServer_Port) }} )
 printline( "AdminServer ListenAddress: port set" )
 
 
-{% if item.ssl_port is defined %}
+{% if item.0.ssl_port is defined %}
 # Set up Adminstration Server SSL parameters
 create('AdminServer','SSL')
 cd('SSL/AdminServer')
 set('Enabled', 'True')
-set('ListenPort', {{ item.ssl_port | default(oracle_weblogic_AdminServer_SSL_Port) }} )
+set('ListenPort', {{ item.0.ssl_port | default(oracle_weblogic_AdminServer_SSL_Port) }} )
 printline( "AdminServer ListenAddress: SSL port set" )
 {% endif %}
 
 # Set up password for system user
 cd( '/' )
 cd( 'Security/base_domain/User/weblogic' )
-cmo.setPassword( '{{ item.password | default(oracle_weblogic_AdminServer_Password) }}' )
+cmo.setPassword( '{{ item.0.password | default(oracle_weblogic_AdminServer_Password) }}' )
 printline( "User credentials set" )
 
 # Set up NodeManager on local machine
 cd( '/' )
 create( '{{ ansible_fqdn }}', 'UnixMachine' )
+printline( "UnixMachine created" )
 cd( 'Machine/' + '{{ ansible_fqdn }}' )
 create( '{{ ansible_fqdn }}', 'NodeManager' )
 cd( 'NodeManager/' + '{{ ansible_fqdn }}' )
-set('ListenAddress', '{{ item.listen_address | default(oracle_weblogic_AdminServer_ListenAddress) }}')
-set('ListenPort', {{ item.nm_port | default(oracle_weblogic_nodemanager_port) }} )
+set('ListenAddress', '{{ ansible_fqdn }}')
+set('ListenPort', {{ item.0.nm_port | default(oracle_weblogic_nodemanager_port) }} )
 set('NMType','ssl')
 set('DebugEnabled', 'false')
 printline( "NodeManager created" )
 
 # Set up domain
-setOption( 'ServerStartMode', '{{ item.start_mode | default(oracle_weblogic_AdminServer_StartMode) }}' )
+setOption( 'ServerStartMode', '{{ item.0.start_mode | default(oracle_weblogic_AdminServer_StartMode) }}' )
+# Change to false if you don't want to overwrite existing domain
 setOption( 'OverwriteDomain', 'true' )
 
-writeDomain('{{ oracle_weblogic_bea_home }}/user_projects/domains/{{ item.domain_name }}' )
+writeDomain('{{ oracle_weblogic_bea_home }}/user_projects/domains/{{ item.0.domain_name }}' )
 printline( "Domain creation done." )
 
 closeTemplate()

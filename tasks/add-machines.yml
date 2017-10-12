@@ -1,0 +1,14 @@
+---
+# Execute wlst script to add machines to Oracle WebLogic domain
+
+- name: Add machines to Oracle Weblogic domains
+  tags:
+    - weblogic
+    - weblogic-domain
+  become: true
+  become_user: "{{ oracle_weblogic_user }}"
+  when: oracle_weblogic_domains is defined
+  with_nested:
+    - "{{ oracle_weblogic_domains }}"
+    - "{{ play_hosts }}"
+  command: "{{ oracle_weblogic_bea_home }}/oracle_common/common/bin/wlst.sh {{ oracle_weblogic_bea_home }}/add_machine_{{ item.0.domain_name }}.py {{ hostvars[item.1]['ansible_fqdn'] }}"

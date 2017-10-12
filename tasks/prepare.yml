@@ -5,11 +5,10 @@
   when: ansible_os_family == "RedHat" and ansible_distribution_major_version >= '6'
   yum: name={{ item }} state=latest
   with_items:
-    - java-1.8.0-openjdk
     - unzip
 
 - name: Copy Oracle WebLogic distribution to host
-  include: "../silpion.lib/tasks/copy.yml"
+  include: "{{ role_path }}/../silpion.lib/tasks/copy.yml"
   vars:
     filename: "{{ oracle_weblogic_archive }}"
 
@@ -30,7 +29,7 @@
 # FIXME: Use some Ansible functions
 - name: Get Oracle install group from Oracle Inventory Location if it exists
   when: oracle_weblogic_orainst_loc.stat.exists == true
-  command: sed -ne 's/^inst_group=\(.\+\)$/\1/p' /etc/oraInst.loc
+  command: sed -ne 's/^inst_group=\(.\+\)$/\1/p' {{ oracle_weblogic_inventory_loc }}
   register: oracle_weblogic_group_new
 
 - debug:

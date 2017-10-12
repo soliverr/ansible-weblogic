@@ -1,0 +1,36 @@
+{{ ansible_managed | comment }}
+
+#
+# Add cluster to given domain
+#
+
+import sys
+
+def printline(s):
+    print " " * 4 + s
+
+if len(sys.argv) < 2:
+    sys.exit( 'Usage: %s cluster_name' % sys.argv[0] )
+
+readDomain('{{ oracle_weblogic_bea_home }}/user_projects/domains/{{ item.0.domain_name }}' )
+
+# Create cluster
+cd( '/' )
+
+try:
+    cd( 'Cluster/' + sys.argv[1] )
+    printline( 'Cluster %s already exists' % sys.argv[1] )
+except:
+    cd( '/' )
+    create( sys.argv[1], 'Cluster' )
+    cd( 'Cluster/' + sys.argv[1] )
+    set('ClusterMessagingMode', 'unicast')
+    set('WeblogicPluginEnabled', 'true')
+    printline( 'Cluster %s created' % sys.argv[1] )
+
+updateDomain()
+closeDomain()
+
+printline( "Domain updated" )
+
+exit()

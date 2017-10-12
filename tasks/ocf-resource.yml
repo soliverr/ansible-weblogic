@@ -1,0 +1,37 @@
+---
+# Add OCF resource to Corosync cluster
+#
+# FIXME: Need all variables to check Corosync cluster parameters
+#
+
+- name: Create OCF resources' directory
+  tags:
+    - weblogic
+    - weblogic-cluster
+  when: oracle_weblogic_domains is defined
+  file:
+    path: "/usr/lib/ocf/resource.d/oracle"
+    state: directory
+    owner: 0
+    group: 0
+    mode: 0755
+
+- name: Add OCF resource to Corosync cluster
+  tags:
+    - weblogic
+    - weblogic-cluster
+  when: oracle_weblogic_domains is defined
+  template:
+    src: ocf-weblogic.j2
+    dest: "/usr/lib/ocf/resource.d/oracle/weblogicAdminServer"
+    backup: yes
+    owner: 0
+    group: 0
+    mode: 0755
+
+- debug:
+    msg: "To create cluster AdminServer use: pcs resource create <Domain_Name_Wls_AdminServer> ocf:oracle:weblogicAdminServer params domain_home=<DOMAIN_HOME> op=start interval='0' timeout='120s' op monitor interval='60s' --force"
+  tags:
+    - weblogic
+    - weblogic-cluster
+  when: oracle_weblogic_domains is defined

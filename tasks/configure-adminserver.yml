@@ -1,0 +1,34 @@
+---
+#
+- name: Create AdminServer security directory
+  tags: weblogic
+  when: not item.exists
+  with_items: "{{ _oracle_weblogic_domains }}"
+  file:
+    path: "{{ oracle_weblogic_bea_home }}/user_projects/domains/{{ item.domain_name }}/servers/AdminServer/security"
+    state: directory
+    owner: "{{ oracle_weblogic_user }}"
+    group: "{{ oracle_weblogic_group }}"
+    mode: 0750
+
+- name: Create AdminServer log directory
+  tags: weblogic
+  when: not item.exists
+  with_items: "{{ _oracle_weblogic_domains }}"
+  file:
+    path: "{{ oracle_weblogic_bea_home }}/user_projects/domains/{{ item.domain_name }}/servers/AdminServer/logs"
+    state: directory
+    owner: "{{ oracle_weblogic_user }}"
+    group: "{{ oracle_weblogic_group }}"
+    mode: 0750
+
+- name: Put password into boot.properties
+  tags: weblogic
+  when: not item.exists
+  with_items: "{{ _oracle_weblogic_domains }}"
+  template:
+    src: boot.properties.j2
+    dest: "{{ oracle_weblogic_bea_home }}/user_projects/domains/{{ item.domain_name }}/servers/AdminServer/security/boot.properties"
+    owner: "{{ oracle_weblogic_user }}"
+    group: "{{ oracle_weblogic_group }}"
+    mode: 0640

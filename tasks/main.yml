@@ -6,22 +6,26 @@
   tags:
     - weblogic
     - weblogic-domain
+    - weblogic-cluster
 
 - name: Include WebLogic version specific vars
   tags:
     - weblogic
     - weblogic-domain
+    - weblogic-cluster
   include_vars: "{{ _wls_dir }}/wls.yml"
 
 - include: validate.yml
   tags:
     - weblogic
     - weblogic-domain
+    - weblogic-cluster
   when: not oracle_weblogic_already_installed
 
 - include: prepare.yml
   tags:
     - weblogic
+    - weblogic-cluster
     - weblogic-domain
   become: yes
   when: not oracle_weblogic_already_installed
@@ -38,7 +42,7 @@
     group: "{{ oracle_weblogic_group }}"
     mode: 0775
 
-- include: "{{ _wls_dir }}/install.yml"
+- include: install.yml
   tags: weblogic
   become: yes
   become_user: "{{ oracle_weblogic_user }}"
@@ -68,7 +72,7 @@
 #
 # Configure domains and Administation server
 #
-- include: "{{ _wls_dir }}/config-domain.yml"
+- include: create-domain.yml
   tags:
     - weblogic
     - weblogic-domain
@@ -76,11 +80,40 @@
   become_user: "{{ oracle_weblogic_user }}"
   when: oracle_weblogic_already_installed and oracle_weblogic_domains is defined
 
-#
-# Set up start up system script for domains
-#
-- include: "system-services.yml"
+- include: configure-adminserver.yml
   tags:
     - weblogic
     - weblogic-domain
+  static: yes
+  become: yes
+  become_user: "{{ oracle_weblogic_user }}"
   when: oracle_weblogic_already_installed and oracle_weblogic_domains is defined
+
+- include: configure-nodemanager.yml
+  tags:
+    - weblogic
+    - weblogic-domain
+  static: yes
+  become: yes
+  become_user: "{{ oracle_weblogic_user }}"
+  when: oracle_weblogic_already_installed and oracle_weblogic_domains is defined
+
+#
+# Set up start up system script for domains
+#
+- include: system-services.yml
+  tags:
+    - weblogic
+    - weblogic-domain
+  static: yes
+  when: oracle_weblogic_already_installed and oracle_weblogic_domains is defined
+
+#
+# Set up OCF Corosync resourse for AdminServer
+#
+- include: ocf-resource.yml
+  tags:
+    - weblogic
+    - weblogic-cluster
+  static: yes
+  when: oracle_weblogic_already_installed and oracle_weblogic_ocf

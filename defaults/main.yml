@@ -23,11 +23,23 @@ oracle_weblogic_bea_home: /opt/oracle/oraclefmw
 # Default installers' build-in location for WebLogic server Home
 oracle_weblogic_wls_home: "{{ oracle_weblogic_bea_home }}/wlserver"
 
-# Default installation type
-oracle_weblogic_install_type: WebLogic Server
+# Default installation type:
+#  - WebLogic Server
+#  - Fusion Middleware Infrastructure
+#  - Coherence
+#  - Complete with Examples
+oracle_weblogic_install_type: 'WebLogic Server'
 
 # Default Oracle WebLogic NodeManager port
 oracle_weblogic_nodemanager_port: 5556
+
+# Don't create ocf resource for Pacemaker/Corosync
+oracle_weblogic_ocf: false
+
+# Create system startup scripts
+oracle_weblogic_sysinit: true
+oracle_weblogic_sysinit_adminserver: true
+oracle_weblogic_sysinit_nodemanager: true
 
 # Defaults for creating domain
 oracle_weblogic_AdminServer_ListenAddress: ''

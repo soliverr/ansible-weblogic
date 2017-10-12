@@ -1,0 +1,50 @@
+{{ ansible_managed | comment }}
+
+#
+# Add machine to given domain
+#
+
+import sys
+
+def printline(s):
+    print " " * 4 + s
+
+if len(sys.argv) < 2:
+    sys.exit( 'Usage: %s machine_name' % sys.argv[0] )
+
+readDomain('{{ oracle_weblogic_bea_home }}/user_projects/domains/{{ item.0.domain_name }}' )
+
+# Create machine
+cd( '/' )
+
+try:
+    cd( 'Machine/' + sys.argv[1] )
+    printline( 'Machine %s already exists' % sys.argv[1] )
+except:
+    cd( '/' )
+    create( sys.argv[1], 'UnixMachine' )
+    printline( "UnixMachine created" )
+
+cd( '/' )
+cd( 'Machine/' + sys.argv[1] )
+
+try:
+    cd( 'NodeManager/' + sys.argv[1] )
+    printline( 'NodeManager for machine %s already exists' % sys.argv[1] )
+except:
+    cd( '/' )
+    cd( 'Machine/' + sys.argv[1] )
+    create( sys.argv[1], 'NodeManager' )
+    cd( 'NodeManager/' + sys.argv[1] )
+    set('ListenAddress', sys.argv[1])
+    set('ListenPort', 5556 )
+    set('NMType','ssl')
+    set('DebugEnabled', 'false')
+    printline( "NodeManager created" )
+
+updateDomain()
+closeDomain()
+
+printline( "Domain updated" )
+
+exit()

@@ -20,3 +20,6 @@ oracle_weblogic_service_dir: /etc/init.d
 
 # Store fact about Oracle WebLogic existence
 oracle_weblogic_already_installed: false
+
+# Java binary
+oracle_weblogic_java: "{{ ansible_local.java.general.java_home|default('/usr') }}/bin/java"
