@@ -1,0 +1,21 @@
+---
+# vars file for ansible-weblogic Oracle WebLogic 11g
+
+# Distribution archive should be downloaded from Oracle
+#   http://www.oracle.com/technetwork/middleware/weblogic/downloads/wls-main-097127.html
+oracle_weblogic_archive: "wls1036_generic.jar"
+
+# Jar-file to run Installer
+oracle_weblogic_jar: "wls1036_generic.jar"
+
+# Configuration for silent installation mode
+oracle_weblogic_response_file: "{{ oracle_weblogic_tmp }}/silent.xml"
+
+# Default installers' build-in location for WebLogic server Home
+oracle_weblogic_wls_home: "{{ oracle_weblogic_bea_home }}/wlserver"
+
+# Default template for response file
+_oracle_weblogic_response_template: "{{ oracle_weblogic_response_template | default( role_path + '/templates/wls11g/silent-11g.xml.j2' ) }}"
+
+# Default template to configure domain wlst-script
+_oracle_weblogic_domain_template: "{{ oracle_weblogic_domain_template | default ( role_path + '/templates/wls12c/weblogic-config.py.j2' ) }}"

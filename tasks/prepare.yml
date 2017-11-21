@@ -71,7 +71,19 @@
 - name: Extract Oracle WebLogic installation files
   become_user: "{{ oracle_weblogic_user }}"
   become: true
+  when: oracle_weblogic_version == '12c'
   unarchive:
+    src: "{{ lib_persistent_data_path_remote }}/{{ oracle_weblogic_archive }}"
+    dest: "{{ oracle_weblogic_tmp }}"
+    remote_src: true
+    owner: "{{ oracle_weblogic_user }}"
+    group: "{{ oracle_weblogic_group }}"
+
+- name: Copy Oracle WebLogic installation files
+  become_user: "{{ oracle_weblogic_user }}"
+  become: true
+  when: oracle_weblogic_version == '11g'
+  copy:
     src: "{{ lib_persistent_data_path_remote }}/{{ oracle_weblogic_archive }}"
     dest: "{{ oracle_weblogic_tmp }}"
     remote_src: true

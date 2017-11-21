@@ -11,7 +11,12 @@
   when: oracle_weblogic_version == "12c"
   tags: weblogic
 
-- name: Install Oracle WebLogic 12c in silent mode
+- set_fact:
+    _wls_install: "{{ oracle_weblogic_java }} {{ oracle_weblogic_java_options }} -jar {{ oracle_weblogic_tmp }}/{{ oracle_weblogic_jar }} {{ oracle_weblogic_installer_options }} -silent_xml {{ oracle_weblogic_response_file }} -invPtrLoc {{ oracle_weblogic_inventory_loc }} -logfile {{ oracle_weblogic_tmp }}/installer.log"
+  when: oracle_weblogic_version == "11g"
+  tags: weblogic
+
+- name: Install Oracle WebLogic {{ oracle_weblogic_version }} in silent mode
   tags: weblogic
   shell: "{{ _wls_install  }}"
   args:
