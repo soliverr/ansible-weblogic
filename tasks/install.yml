@@ -12,7 +12,7 @@
   tags: weblogic
 
 - set_fact:
-    _wls_install: "{{ oracle_weblogic_java }} {{ oracle_weblogic_java_options }} -jar {{ oracle_weblogic_tmp }}/{{ oracle_weblogic_jar }} {{ oracle_weblogic_installer_options }} -silent_xml {{ oracle_weblogic_response_file }} -invPtrLoc {{ oracle_weblogic_inventory_loc }} -logfile {{ oracle_weblogic_tmp }}/installer.log"
+    _wls_install: "{{ oracle_weblogic_java }} {{ oracle_weblogic_java_options }} -jar {{ oracle_weblogic_tmp }}/{{ oracle_weblogic_jar }} {{ oracle_weblogic_installer_options }} -mode=silent -silent_xml={{ oracle_weblogic_response_file }} -invPtrLoc={{ oracle_weblogic_inventory_loc }} -logfile={{ oracle_weblogic_tmp }}/installer.log"
   when: oracle_weblogic_version == "11g"
   tags: weblogic
 

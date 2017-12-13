@@ -1,31 +1,9 @@
 ---
 # tasks file for ansible-weblogic
 
-#   Fail the play if it runs on an unsupported platform.
-- name: Assert platform is supported
-  tags:
-    - weblogic
-    - weblogic-domain
-    - weblogic-cluster
-  assert:
-    that:
-      - ansible_os_family in oracle_weblogic_supported_os_families
-      - oracle_weblogic_version in oracle_weblogic_supported_versions
-
-- set_fact:
-    _wls_dir: "wls{{ oracle_weblogic_version }}"
-  tags:
-    - weblogic
-    - weblogic-domain
-    - weblogic-cluster
-
-- name: Include WebLogic version specific vars
-  tags:
-    - weblogic
-    - weblogic-domain
-    - weblogic-cluster
-  include_vars: "{{ _wls_dir }}/wls.yml"
-
+#
+# Validation of current Oracle Weblogic installation
+#
 - include: validate.yml
   tags:
     - weblogic

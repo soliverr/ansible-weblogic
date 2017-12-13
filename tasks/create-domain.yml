@@ -7,7 +7,6 @@
     - "{{ _oracle_weblogic_domains }}"
     - [
        { src: "{{ _oracle_weblogic_domain_template }}", prefix: create },
-       { src: "weblogic-add-machine.py.j2", prefix: add_machine },
        { src: "weblogic-add-cluster.py.j2", prefix: add_cluster }
       ]
   template:
@@ -17,7 +16,7 @@
 
 - name: Create Oracle WebLogic domains in silent mode
   tags: weblogic
-  when: not item.exists
+  when: not item.exists and oracle_weblogic_run_wlst
   with_items: "{{ _oracle_weblogic_domains }}"
   command: "{{ oracle_weblogic_bea_home }}/oracle_common/common/bin/wlst.sh {{ oracle_weblogic_bea_home }}/create_{{ item.domain_name }}.py"
   args:

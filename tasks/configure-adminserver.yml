@@ -24,7 +24,7 @@
 
 - name: Put password into boot.properties
   tags: weblogic
-  when: not item.exists
+  #when: not item.exists
   with_items: "{{ _oracle_weblogic_domains }}"
   template:
     src: boot.properties.j2
@@ -32,3 +32,4 @@
     owner: "{{ oracle_weblogic_user }}"
     group: "{{ oracle_weblogic_group }}"
     mode: 0640
+    backup: yes

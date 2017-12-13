@@ -1,13 +1,24 @@
 ---
 # Execute wlst script to add machines to Oracle WebLogic domain
 
+- name: Prepare configuration for creating machines
+  tags: weblogic
+  become: true
+  with_nested:
+    - "{{ _oracle_weblogic_domains }}"
+    - { src: "weblogic-add-machine.py.j2", prefix: add_machine },
+  template:
+    src: "{{ item[1].src }}"
+    dest: "{{ oracle_weblogic_bea_home }}/{{ item.1.prefix }}_{{ item.0.domain_name }}.py"
+    backup: yes
+
 - name: Add machines to Oracle Weblogic domains
   tags:
     - weblogic
     - weblogic-domain
   become: true
   become_user: "{{ oracle_weblogic_user }}"
-  when: oracle_weblogic_domains is defined
+  when: oracle_weblogic_domains is defined and oracle_weblogic_run_wlst
   with_nested:
     - "{{ oracle_weblogic_domains }}"
     - "{{ play_hosts }}"

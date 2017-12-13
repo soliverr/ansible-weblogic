@@ -1,3 +1,31 @@
+---
+#
+
+#   Fail the play if it runs on an unsupported platform.
+- name: Assert platform is supported
+  tags:
+    - weblogic
+    - weblogic-domain
+    - weblogic-cluster
+  assert:
+    that:
+      - ansible_os_family in oracle_weblogic_supported_os_families
+      - oracle_weblogic_version in oracle_weblogic_supported_versions
+
+- set_fact:
+    _wls_dir: "wls{{ oracle_weblogic_version }}"
+  tags:
+    - weblogic
+    - weblogic-domain
+    - weblogic-cluster
+
+- name: Include WebLogic version specific vars
+  tags:
+    - weblogic
+    - weblogic-domain
+    - weblogic-cluster
+  include_vars: "{{ _wls_dir }}/wls.yml"
+
 - name: Assert Oracle Weblogic supported versions
   assert:
     that:
@@ -18,18 +46,11 @@
   stat: path="{{ oracle_weblogic_bea_home }}/user_projects/domains/{{ item.domain_name }}/servers/AdminServer/data/ldap/DefaultAuthenticatormyrealmInit.initialized"
   register: wls_domains
 
-#- debug: var=wls_domains
-#  tags: weblogic
-
-#- debug: var=oracle_weblogic_domains
-
-# Copy to internal facts
+# Set up internal facts
 - set_fact:
     _oracle_weblogic_domains: "{{ _oracle_weblogic_domains|default([]) + [ item.item|combine(item.stat) ] }}"
   with_items: "{{ wls_domains.results }}"
   when: wls_domains.results is defined
-
-#- debug: var=_oracle_weblogic_domains
 
 - set_fact:
     oracle_weblogic_already_installed: true

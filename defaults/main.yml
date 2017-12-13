@@ -47,3 +47,6 @@ oracle_weblogic_AdminServer_Password: manager1
 oracle_weblogic_AdminServer_Port: 7001
 oracle_weblogic_AdminServer_StartMode: prod
 oracle_weblogic_AdminServer_SSL_Port: 7002
+
+# Run created wlst-scripts by default
+oracle_weblogic_run_wlst: true

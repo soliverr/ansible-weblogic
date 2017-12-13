@@ -1,7 +1,8 @@
 ---
 #
-- name: Configure NodeManager properties
+- name: Configure 12c Domain NodeManager properties
   tags: weblogic
+  when: oracle_weblogic_version == '12c'
   with_nested:
     - "{{ _oracle_weblogic_domains }}"
     - [
@@ -10,6 +11,21 @@
       ]
   lineinfile:
     path: "{{ oracle_weblogic_bea_home }}/user_projects/domains/{{ item[0].domain_name }}/nodemanager/nodemanager.properties"
+    state: present
+    regexp: "{{ item[1].regex }}"
+    line: "{{ item[1].replace_with | replace( '%nm_port%', item[0].nm_port|default(oracle_weblogic_nodemanager_port) ) }}"
+
+- name: Configure 11g NodeManager properties
+  tags: weblogic
+  when: oracle_weblogic_version == '11g'
+  with_nested:
+    - "{{ _oracle_weblogic_domains }}"
+    - [
+        { regex: '^ListenAddress=', replace_with: "ListenAddress=" },
+        { regex: '^ListenPort=', replace_with: 'ListenPort=%nm_port%' }
+      ]
+  lineinfile:
+    path: "{{ oracle_weblogic_wls_home }}/common/nodemanager/nodemanager.properties"
     state: present
     regexp: "{{ item[1].regex }}"
     line: "{{ item[1].replace_with | replace( '%nm_port%', item[0].nm_port|default(oracle_weblogic_nodemanager_port) ) }}"
