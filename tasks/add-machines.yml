@@ -6,7 +6,7 @@
   become: true
   with_nested:
     - "{{ _oracle_weblogic_domains }}"
-    - { src: "weblogic-add-machine.py.j2", prefix: add_machine },
+    - { src: "weblogic-add-machine.py.j2", prefix: add_machine }
   template:
     src: "{{ item[1].src }}"
     dest: "{{ oracle_weblogic_bea_home }}/{{ item.1.prefix }}_{{ item.0.domain_name }}.py"
